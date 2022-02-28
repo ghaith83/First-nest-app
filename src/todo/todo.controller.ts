@@ -1,11 +1,18 @@
-import { Controller, Delete, Get, Post, Put, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { get } from 'http';
+import { addTodoto } from './dto/add-todo-tdo';
+import { TodoService } from './service/todo.service';
+
 
 @Controller('todo')
 export class TodoController {
+    constructor(private todoservice:TodoService){
+       
+    }
+   
+    
     @Get( "get")
-    getTodo(
+    getTodo2(
         @Req()request:Request,
         @Res() response:Response
         
@@ -17,26 +24,42 @@ export class TodoController {
         response.json({content:"je suis la reponse de la 1er controleur"})
         return "get listes de todo"
     }
-    @Get( "v2")
-    getTodov2(){
-        //console.log(response)
-        //console.log(request)
+
+    @Get( )
+    getTodov(
+        @Query()mesQuery
+    ){
+        console.log(mesQuery)
+        return this.todoservice.getTodos()
+    }
+//get 
+    @Get("/:id")
+    getTodoById(
+        @Param('id')id,
         
-        return "get listes de todo"
+    ){
+      return this.todoservice.getTodoById(+id);
     }
+
+
     @Post()
-    addTodo(){
-        console.log("ajouter la list de ToDO")
-        return "listes de todo"
+    addTodo(
+        @Body()newTodo:addTodoto){
+        return this.todoservice.addTodo(newTodo);
     }
-    @Delete()
-    deleteTodo(){
-        console.log("supprime la list de ToDO")
-        return "listes de todo"
+
+    @Delete(':id')
+    deleteTodo(
+        @Param('id')indexTodo
+    ){
+        return this.todoservice.deleteTodo(+indexTodo);
+        
     }
-    @Put()
-    modifierTodo(){
-        console.log("recuperer la list de ToDO")
-        return "listes de todo"
+    @Put(':id')
+    modifierTodo(
+        @Param('id')id,
+        @Body()newTodo:Partial<addTodoto>
+    ){
+       return this.todoservice.modifierTodo(+id,newTodo)
     }
 }
