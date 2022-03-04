@@ -74,6 +74,7 @@ export class UserController {
       }
     }
     //deconnecte : tuer  jeton du l'utilisateur 
+    
     @Post('logout')
     async logout(@Res({passthrough:true})Response:Response){
       Response.clearCookie('jwt')

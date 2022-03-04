@@ -1,36 +1,44 @@
-import { Module } from '@nestjs/common';
+import { HelmetMiddleware } from '@nest-middlewares/helmet';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TodoController } from './todo/todo.controller';
+import { FirstMiddleware } from './middlewares/first.middleware';
+import { logger } from './middlewares/logger';
 import { TodoModule } from './todo/todo.module';
-import { user } from './user/user.entity';
 import { UserModule } from './user/user.module';
+import { PersonModule } from './person/person.module';
+import * as dotenv from 'dotenv'
 
-
-
+dotenv.config()
 @Module({
   imports: [TodoModule,
     ConfigModule.forRoot({isGlobal:true}),
     //configuration ORM data base on postgres
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'root',
-      database: 'todo',
-      entities: ['dist/**/*.entity{.ts,.js}'],
+      type: "postgres",
+      host: process.env.POSTGRES_HOST,
+      port: parseInt(process.env.POSTGRES_PORT),
+      username: process.env.postgres_USERNAME,
+      password: process.env.POSTGRES_PASSOWRD,
+      database: process.env.POSTGRES_DATABASE,
+      entities: [process.env.postgres_ENTITY],
       synchronize: true,
       autoLoadEntities:true
     }),
-    UserModule
-
-    
-  
+    UserModule,
+    PersonModule  
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+
+export class AppModule implements NestModule{
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(FirstMiddleware)
+    .forRoutes('hello',{path:"todo",method:RequestMethod.GET},
+    {path:"todo*",method:RequestMethod.DELETE}).apply(logger).forRoutes('')
+    .apply(HelmetMiddleware).forRoutes('')
+  }
+}

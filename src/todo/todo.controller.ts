@@ -1,5 +1,7 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, NotFoundException, Param, ParseIntPipe, Post, Put, Query, Req, Res, UseInterceptors } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { FirstInterceptor } from 'src/interceptors/first.interceptor';
+import { UpperAndFusionPipe } from 'src/pipes/upper-and-fusion.pipe';
 import { addTodoto } from './dto/add-todo-tdo';
 import { TodoService } from './service/todo.service';
 
@@ -35,31 +37,40 @@ export class TodoController {
 //get 
     @Get("/:id")
     getTodoById(
-        @Param('id')id,
+        @Param('id',new ParseIntPipe({errorHttpStatusCode:HttpStatus.NOT_FOUND}))id,
         
     ){
-      return this.todoservice.getTodoById(+id);
+      return this.todoservice.getTodoById(id);
     }
-
+  // add todo list
 
     @Post()
     addTodo(
         @Body()newTodo:addTodoto){
+            console.log(newTodo);
         return this.todoservice.addTodo(newTodo);
     }
 
     @Delete(':id')
     deleteTodo(
-        @Param('id')indexTodo
+        @Param('id',new ParseIntPipe({
+            errorHttpStatusCode:HttpStatus.NOT_FOUND
+        }))indexTodo
     ){
-        return this.todoservice.deleteTodo(+indexTodo);
+        
+        return this.todoservice.deleteTodo(indexTodo);
         
     }
     @Put(':id')
     modifierTodo(
-        @Param('id')id,
+        @Param('id',new ParseIntPipe({errorHttpStatusCode:HttpStatus.NOT_FOUND}))id,
         @Body()newTodo:Partial<addTodoto>
     ){
-       return this.todoservice.modifierTodo(+id,newTodo)
+       return this.todoservice.modifierTodo(id,newTodo)
     }
+    
+    @Post('pipe')
+  testPipe(@Body(UpperAndFusionPipe )data){
+    return data;
+  }
 }
